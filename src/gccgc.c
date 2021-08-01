@@ -251,7 +251,7 @@ gccgc_obj_db_record_t* gccgc_obj_db_lookup(gccgc_obj_db_t *object_db, void *ptr)
 void gccgc_obj_db_add(
 	gccgc_obj_db_t* db,
 	void* ptr,
-	int units,
+	int units, // n records to create
 	gccgc_struct_db_record_t* struct_record,
 	gccgc_bool_t is_root
 ) {
@@ -307,9 +307,15 @@ void* gccgc_calloc(gccgc_obj_db_t* db, char* name, int units) {
 	return ptr;
 }
 
+/**
+ * @brief Set an existing object record to root
+ *
+ * @param db
+ * @param ptr
+ */
 void gccgc_set_dynamic_root_obj(gccgc_obj_db_t* db, void* ptr) {
 	gccgc_obj_db_record_t* record = gccgc_obj_db_lookup(db, ptr);
-  // TODO
+	if (!record) return;
 
   record->root = GCCGC_TRUE;
 }
@@ -429,7 +435,7 @@ void gccgc_algo_exec(gccgc_obj_db_t* db) {
 	gccgc_obj_db_record_t* root_obj = gccgc_obj_get_next(db, NULL);
 
 	while (root_obj) {
-		// all accessible objects in the acyclic graph have been visited,
+		// all accessible objects in the directed cyclic graph have been visited,
 		// proceed here lest we enter an infinite loop
 		if (root_obj->visited) {
 			root_obj = gccgc_obj_get_next(db, root_obj);

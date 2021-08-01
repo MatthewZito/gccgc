@@ -1,33 +1,13 @@
 # gccgc
 
+**implementation abstract**
+
 automatic garbage collection & memory leak detection for the C programming language
 
-i.e. what would it take to for C to have a gc?
+What would it take to have automatic garbage collection for heap memory in C?
 
-## Dynamic Linking
+This is a small project intended to *explore* this problem; it is not intended to be consumed by production applications, nor is it intended to be an ideal solution to said problem.
 
-Linking to `gccgc`:
+`gccgc` implements a depth first search using a linked list that traverses C structures, no matter how nested, and records their properties in a directed cyclic graph. This data structure tracks memory that has been allocated on the heap and reports any memory leaks which have occurred.
 
-```bash
-# 1) include and use gccgc in your project
-# 2) generate object file for your project
-gcc -I ../path/to/gccgc -c main.c -o main.o
-# 3) generate shared object file
-make
-# 4) link your project to gccgc
-gcc -o main main.o -L../path/to/gccgc -lgccgc
-# you may need to add the lib location to your PATH
-```
-
-Linking to `gccgc` on Windows:
-
-```bash
-# 1) include and use gccgc in your project
-# 2) generate object file for your project
-gcc -I ../path/to/gccgc -c main.c -o main.o
-# 3) generate shared object file
-make win
-# 3) link your project to gccgc
-gcc -o main.exe main.o -L /path/to/gccgc -l_gccgc.dll
-# you may need to add the lib location to your PATH
-```
+We begin traversal at the top-most, or root object of a structure. This object is often a global object for which memory leaks cannot be detected given the detection algorithm begins after the root object.

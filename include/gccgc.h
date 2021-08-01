@@ -23,7 +23,7 @@
 		record->size = sizeof(member_name);                                           \
 		record->n_members = sizeof(members_arr) / sizeof(gccgc_member_t);             \
 		record->members = members_arr;                                                \
-		gccgc_struct_db_add(db, record);                                                     \
+		gccgc_struct_db_add(db, record);                                              \
 	} while(0);                                                                     \
 }
 
