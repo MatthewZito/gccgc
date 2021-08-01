@@ -1,7 +1,7 @@
 #include "gccgc.h"
 
 #include <stdlib.h>
-#include <stdio.h>
+#include <string.h>
 
 typedef struct graph {
 	char name[30];
@@ -25,13 +25,13 @@ int panic(char* msg) {
 	exit(EXIT_FAILURE);
 }
 int main(int argc, char* argv[]) {
-	gccgc_struct_db_t* db;
+	gccgc_struct_db_t* struct_db;
 
-	if (!(db = malloc(sizeof(gccgc_struct_db_t)))) {
+	if (!(struct_db = malloc(sizeof(gccgc_struct_db_t)))) {
 		panic("failed to malloc db");
 	}
 
-	gccgc_db_init_primitives(db);
+	gccgc_db_init_primitives(struct_db);
 
 	// register structure maps
 	static gccgc_member_t graph_map[] = {
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 		FMT_MEMBER_INFO(graph_t, r, OBJ_PTR, 0)
   };
 
-  REGISTER_STRUCT(db, graph_t, graph_map);
+  REGISTER_STRUCT(struct_db, graph_t, graph_map);
 
 	static gccgc_member_t node_map[] = {
 		FMT_MEMBER_INFO(node_t, name, CHAR, 0),
@@ -53,7 +53,36 @@ int main(int argc, char* argv[]) {
 		FMT_MEMBER_INFO(node_t, next, OBJ_PTR, node_t)
 	};
 
-	REGISTER_STRUCT(db, node_t, node_map);
+	REGISTER_STRUCT(struct_db, node_t, node_map);
 
-	gccgc_print_db(db);
+	gccgc_struct_db_print(struct_db);
+
+	// init object database
+	gccgc_obj_db_t* obj_db;
+
+	if (!(obj_db = malloc(sizeof(gccgc_obj_db_t)))) {
+		panic("failed to malloc object db");
+	}
+
+	obj_db->struct_db = struct_db;
+
+	// memory allocate some objects
+	node_t* node = gccgc_calloc(obj_db, "node_t", 1);
+	gccgc_set_dynamic_root_obj(obj_db, node);
+
+	node_t* node2 = gccgc_calloc(obj_db, "node_t", 1);
+	if (!snprintf(node2->name, strlen("node2") + 1, "%s", "node2")) {
+		panic("snprintf");
+	}
+
+	graph_t *graph = gccgc_calloc(obj_db, "graph_t", 2);
+	gccgc_set_dynamic_root_obj(obj_db, graph);
+	graph->r = gccgc_calloc(obj_db, "int", 1);
+
+	gccgc_print_obj_db(obj_db);
+
+	gccgc_algo_exec(obj_db);
+
+	printf("Leaked objects: \n");
+	gccgc_memleak_report(obj_db);
 }
