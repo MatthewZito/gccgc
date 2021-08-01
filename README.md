@@ -1,5 +1,9 @@
 # gccgc
 
+automatic garbage collection & memory leak detection for the C programming language
+
+i.e. what would it take to for C to have a gc?
+
 ## Dynamic Linking
 
 Linking to `gccgc`:
